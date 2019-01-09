@@ -291,15 +291,26 @@ int main(int argc, const char * argv[]) {
                 printf("Point B: (%08.2f, %08.2f)\n", pointB.x, pointB.y);
 
                 double slope = (pointA.y - pointB.y) / (pointA.x - pointB.x);
-                double x = 1*((slope*pointA.x + pointA.y)/(tan(M_PI/180*(leftAngle-rightAngle)/2)-slope)+0.1461);
-                double y = x*(tan(M_PI/180*(leftAngle+rightAngle)/2));
+
+                // Calculate position of vision targets by projecting camera angles
+                double xLeft = 1*(slope*pointA.x + pointA.y)/(tan(M_PI/180*leftAngle-slope);
+                double yLeft = xLeft*(tan(M_PI/180*leftAngle));
+
+                double xRight = 1*(slope*pointA.x + pointA.y)/(tan(M_PI/180*rightAngle-slope);
+                double yRight = xLeft*(tan(M_PI/180*rightAngle));
+
+                // Midpoint of vision targets is the center of the target
+                double x = (xLeft+xRight)/2 + 0.1461; // lidar to center of turning
+                double y = (yLeft+yRight)/2; // lidar to center of turning
+
+                // Calculate offset for robot relative to vision target
                 double angle = atan(-1/slope);
                 double off = 0.3;
                 double x_off = x+off*cos(angle);
                 double y_off = y+off*sin(angle);
-//                printf("Slope1: %08.2f Slope2: %08.2f\n", slope, (leftAngle+rightAngle)/2); 0.48m
-                printf("Point C: (%08.3f, %08.3f)\n", x, y);
-                printf("Point D: (%08.3f, %08.3f)\n", x_off, y_off);
+
+                printf("Pose of vision target: (%08.3f, %08.3f)\n", x, y);
+                printf("Target pose with offset: (%08.3f, %08.3f)\n", x_off, y_off);
                 printf("Slope: %08.3f\n", angle);
 
                 if (!sentFlag) {

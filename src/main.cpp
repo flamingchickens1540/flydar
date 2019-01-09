@@ -78,6 +78,7 @@ bool checkRPLIDARHealth(RPlidarDriver * drv)
 }
 
 #include <signal.h>
+#include <math.h>
 bool ctrl_c_pressed;
 void ctrlc(int)
 {
@@ -217,18 +218,17 @@ int main(int argc, const char * argv[]) {
         return 0;
     }
 
-//    auto inst = nt::NetworkTableInstance::GetDefault();
     nt::NetworkTable::SetClientMode();
     nt::NetworkTable::SetIPAddress("10.15.40.2");
 
     auto limeTable = nt::NetworkTable::GetTable("limelight");
-    auto tx00 = limeTable->GetEntry("tx00");
-    auto tx11 = limeTable->GetEntry("tx11");
+    auto tx0 = limeTable->GetEntry("tx0");
+    auto tx1 = limeTable->GetEntry("tx1");
 
     auto smartDashboard = nt::NetworkTable::GetTable("SmartDashboard");
-    auto goal_x = smartDashboard->GetEntry("--------goal_position_x");
-    auto goal_y = smartDashboard->GetEntry("--------goal_position_y");
-    auto goal_theta = smartDashboard->GetEntry("--------goal_orientation_z");
+    auto goal_x = smartDashboard->GetEntry("vision_position_x");
+    auto goal_y = smartDashboard->GetEntry("vision_position_y");
+    auto goal_theta = smartDashboard->GetEntry("vision_orientation_z");
 
     bool sentFlag = false;
 
@@ -251,10 +251,16 @@ int main(int argc, const char * argv[]) {
             float thetaB = NULL;
             float distanceB = NULL;
 
-            double tx00val = tx00.GetDouble(99);
-            double tx11val = tx11.GetDouble(99);
-            double leftAngle = std::fmin(tx00val, tx11val);
-            double rightAngle = std::fmax(tx00val, tx11val);
+            double tx0val = tx0.GetDouble(99);
+            double tx1val = tx1.GetDouble(99);
+
+            if (tx0val < 90 && tx1val < 90) {
+                tx0val = 90 - atan2(1, tx0val*0.50952544949f)*180/M_PI
+                tx1val = 90 - atan2(1, tx1val*0.50952544949f)*180/M_PI
+            }
+
+            double leftAngle = std::fmin(tx0val, tx1val);
+            double rightAngle = std::fmax(tx0val, tx1val);
 
             drv->ascendScanData(nodes, count);
             for (int pos = 0; pos < (int)count ; ++pos) {
@@ -287,8 +293,8 @@ int main(int argc, const char * argv[]) {
                 Point2D pointA = polarToCartesian(Polar2D{M_PI/180*thetaA, distanceA});
                 Point2D pointB = polarToCartesian(Polar2D{M_PI/180*thetaB, distanceB});
 
-                printf("Point A: (%08.2f, %08.2f)\n", pointA.x, pointA.y);
-                printf("Point B: (%08.2f, %08.2f)\n", pointB.x, pointB.y);
+                printf("lidar right point: (%08.2f, %08.2f)\n", pointA.x, pointA.y);
+                printf("lidar left point: (%08.2f, %08.2f)\n", pointB.x, pointB.y);
 
                 double slope = (pointA.y - pointB.y) / (pointA.x - pointB.x);
 
@@ -313,18 +319,9 @@ int main(int argc, const char * argv[]) {
                 printf("Target pose with offset: (%08.3f, %08.3f)\n", x_off, y_off);
                 printf("Slope: %08.3f\n", angle);
 
-                if (!sentFlag) {
-                    goal_x.SetDouble(-x_off);
-                    goal_y.SetDouble(-y_off);
-                    goal_theta.SetDouble(angle);
-                    sentFlag = true;
-                }
-
-//                RPlidarDriver::DisposeDriver(drv);
-//                drv = NULL;
-//                return 0;
-
-
+                goal_x.SetDouble(-x_off);
+                goal_y.SetDouble(-y_off);
+                goal_theta.SetDouble(angle);
             }
         }
 

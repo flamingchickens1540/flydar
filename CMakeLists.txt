@@ -7,26 +7,10 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -w -pthread")
 
-set(EXTERNAL_INCLUDE_DIRS
-        )
 
 include_directories(
-        ${EXTERNAL_INCLUDE_DIRS}
         /usr/local/include/networktables/
         /usr/local/include/rplidar_sdk/
-)
-
-set(NT_LIBRARIES
-        /usr/local/lib/libntcore.so
-        /usr/local/lib/libwpiutil.so
-        )
-
-set(EXTERNAL_LIBS
-        ${NT_LIBRARIES}
-        )
-
-link_libraries(
-        ${EXTERNAL_LIBS}
 )
 
 set(SOURCE_FILES
@@ -36,4 +20,6 @@ set(SOURCE_FILES
 add_executable(lidar ${SOURCE_FILES})
 target_link_libraries(lidar
         /usr/local/lib/librplidar_sdk.a
+        /usr/local/lib/libntcore.a
+        /usr/local/lib/libwpiutil.a
         )

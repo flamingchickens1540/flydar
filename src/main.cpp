@@ -255,8 +255,8 @@ int main(int argc, const char * argv[]) {
             double tx1val = tx1.GetDouble(99);
 
             if (tx0val < 90 && tx1val < 90) {
-                tx0val = 90 - atan2(1, tx0val*0.50952544949f)*180/M_PI
-                tx1val = 90 - atan2(1, tx1val*0.50952544949f)*180/M_PI
+                tx0val = 90 - atan2(1, tx0val*0.50952544949f)*180/M_PI;
+                tx1val = 90 - atan2(1, tx1val*0.50952544949f)*180/M_PI;
             }
 
             double leftAngle = std::fmin(tx0val, tx1val);
@@ -289,7 +289,7 @@ int main(int argc, const char * argv[]) {
                 }
             }
 
-            if (distanceA && distanceB && tx00val < 99 && tx11val < 99 ) {
+            if (distanceA && distanceB && tx0val < 99 && tx1val < 99 ) {
                 Point2D pointA = polarToCartesian(Polar2D{M_PI/180*thetaA, distanceA});
                 Point2D pointB = polarToCartesian(Polar2D{M_PI/180*thetaB, distanceB});
 
@@ -299,28 +299,31 @@ int main(int argc, const char * argv[]) {
                 double slope = (pointA.y - pointB.y) / (pointA.x - pointB.x);
 
                 // Calculate position of vision targets by projecting camera angles
-                double xLeft = 1*(slope*pointA.x + pointA.y)/(tan(M_PI/180*leftAngle-slope);
+                double xLeft = -1*(slope*pointA.x + pointA.y)/(tan(M_PI/180*leftAngle)-slope);
                 double yLeft = xLeft*(tan(M_PI/180*leftAngle));
 
-                double xRight = 1*(slope*pointA.x + pointA.y)/(tan(M_PI/180*rightAngle-slope);
+                double xRight = -1*(slope*pointA.x + pointA.y)/(tan(M_PI/180*rightAngle)-slope);
                 double yRight = xLeft*(tan(M_PI/180*rightAngle));
 
+                printf("vision right point: (%08.2f, %08.2f)\n", xRight, yRight);
+                printf("vision left point: (%08.2f, %08.2f)\n", xLeft, yLeft);
+
                 // Midpoint of vision targets is the center of the target
-                double x = (xLeft+xRight)/2 + 0.1461; // lidar to center of turning
-                double y = (yLeft+yRight)/2; // lidar to center of turning
+                double x = (xLeft+xRight)/2;
+                double y = (yLeft+yRight)/2;
 
                 // Calculate offset for robot relative to vision target
                 double angle = atan(-1/slope);
-                double off = 0.3;
-                double x_off = x+off*cos(angle);
+                double off = -0.5;
+                double x_off = x+off*cos(angle)+0.1461;
                 double y_off = y+off*sin(angle);
 
                 printf("Pose of vision target: (%08.3f, %08.3f)\n", x, y);
                 printf("Target pose with offset: (%08.3f, %08.3f)\n", x_off, y_off);
                 printf("Slope: %08.3f\n", angle);
 
-                goal_x.SetDouble(-x_off);
-                goal_y.SetDouble(-y_off);
+                goal_x.SetDouble(x_off);
+                goal_y.SetDouble(y_off);
                 goal_theta.SetDouble(angle);
             }
         }

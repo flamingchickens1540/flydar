@@ -9,7 +9,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -w -pthread")
 
 
 include_directories(
-        /usr/local/include/networktables/
+        /usr/local/include/ntcore/
         /usr/local/include/rplidar_sdk/
 )
 

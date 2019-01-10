@@ -11,10 +11,9 @@ set(EXTERNAL_INCLUDE_DIRS
         )
 
 include_directories(
-        /home/wangl/CLionProjects/rplidar_sdk/sdk/sdk/include/
-        /home/wangl/CLionProjects/rplidar_sdk/sdk/sdk/src/
         ${EXTERNAL_INCLUDE_DIRS}
         /usr/local/include/networktables/
+        /usr/local/include/rplidar_sdk/
 )
 
 set(NT_LIBRARIES
@@ -36,5 +35,5 @@ set(SOURCE_FILES
 
 add_executable(lidar ${SOURCE_FILES})
 target_link_libraries(lidar
-        /home/wangl/CLionProjects/rplidar_sdk/sdk/output/Linux/Release/librplidar_sdk.a
+        /usr/local/lib/librplidar_sdk.a
         )

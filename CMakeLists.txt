@@ -11,11 +11,12 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -w -pthread")
 include_directories(
         /usr/local/include/ntcore/
         /usr/local/include/rplidar_sdk/
+        /usr/local/include/eigen3/
 )
 
 set(SOURCE_FILES
         src/main.cpp
-        )
+        src/filterinterp.cpp src/common.cpp src/common.h)
 
 add_executable(lidar ${SOURCE_FILES})
 target_link_libraries(lidar

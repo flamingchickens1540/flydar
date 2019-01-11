@@ -29,8 +29,7 @@
 
 #include "rplidar.h" //RPLIDAR standard sdk, all-in-one header
 #include "networktables/NetworkTable.h"
-#include "networktables/NetworkTableEntry.h"
-#include "networktables/NetworkTableInstance.h"
+#include "common.h"
 
 #ifndef _countof
 #define _countof(_Array) (int)(sizeof(_Array) / sizeof(_Array[0]))
@@ -77,31 +76,10 @@ bool checkRPLIDARHealth(RPlidarDriver * drv)
     }
 }
 
-#include <signal.h>
-#include <math.h>
 bool ctrl_c_pressed;
 void ctrlc(int)
 {
     ctrl_c_pressed = true;
-}
-
-struct Polar2D
-{
-    double th;
-    double r;
-};
-
-struct Point2D
-{
-    double x;
-    double y;
-};
-
-Point2D polarToCartesian(Polar2D p) {
-    return Point2D{
-        p.r*cos(p.th),
-        p.r*sin(p.th)
-    };
 }
 
 int main(int argc, const char * argv[]) {
@@ -111,9 +89,6 @@ int main(int argc, const char * argv[]) {
     u_result     op_result;
 
     bool useArgcBaudrate = false;
-
-    printf("Ultra simple LIDAR data grabber for RPLIDAR.\n"
-           "Version: "RPLIDAR_SDK_VERSION"\n");
 
     // read serial port from the command line...
     if (argc>1) opt_com_path = argv[1]; // or set to a fixed value: e.g. "com3" 

@@ -255,7 +255,8 @@ int main(int argc, const char * argv[]) {
 
                 rawPoints.push_back(new Polar2D{thetaRadians, distance});
             }
-            filterInterp->processWithOffsets(rawPoints, angles);
+            auto result = filterInterp->processWithOffsets(rawPoints, angles);
+//            printf("%fx + %f \n", result.m, result.b);
 
         }
 

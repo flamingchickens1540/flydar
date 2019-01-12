@@ -12,6 +12,7 @@ include_directories(
         /usr/local/include/ntcore/
         /usr/local/include/rplidar_sdk/
         /usr/local/include/eigen3/
+        /usr/include/eigen3/
 )
 
 set(SOURCE_FILES

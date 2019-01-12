@@ -16,7 +16,7 @@ include_directories(
 
 set(SOURCE_FILES
         src/main.cpp
-        src/filterinterp.cpp src/common.cpp src/common.h)
+        src/filterinterp.cpp src/common.cpp src/common.h src/filterinterp.h)
 
 add_executable(lidar ${SOURCE_FILES})
 target_link_libraries(lidar

@@ -66,7 +66,7 @@ Line2D FilterInterp::processWithOffsets(std::vector<Polar2D*> rawPoints, std::ve
             A(i, 1) = allUsablePoints.at(i).x;
             b(i)= allUsablePoints.at(i).y;
         }
-        Eigen::VectorXd x = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+        Eigen::VectorXf x = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
         return Line2D {x(0), x(1)};
     }
 }

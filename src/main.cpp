@@ -233,8 +233,8 @@ int main(int argc, const char * argv[]) {
             double tx1val = tx1.GetDouble(99);
 
             if (tx0val < 90 && tx1val < 90) {
-                tx0val = 90 - atan2(1, tx0val*0.50952544949f)*180/M_PI;
-                tx1val = 90 - atan2(1, tx1val*0.50952544949f)*180/M_PI;
+                tx0val = M_PI/2 - atan2(1, tx0val*0.50952544949f);
+                tx1val = M_PI/2 - atan2(1, tx1val*0.50952544949f);
             }
 
             std::vector<double> angles;

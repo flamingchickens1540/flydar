@@ -5,8 +5,6 @@
 #ifndef LIDAR_COMMON_H
 #define LIDAR_COMMON_H
 
-#endif //LIDAR_COMMON_H
-
 struct Polar2D {
     double th, r;
 };
@@ -20,3 +18,5 @@ struct Line2D {
 };
 
 Point2D polarToCartesian(Polar2D *p);
+
+#endif //LIDAR_COMMON_H

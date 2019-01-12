@@ -30,6 +30,7 @@
 #include "rplidar.h" //RPLIDAR standard sdk, all-in-one header
 #include "networktables/NetworkTable.h"
 #include "common.h"
+#include "filterinterp.h"
 
 #ifndef _countof
 #define _countof(_Array) (int)(sizeof(_Array) / sizeof(_Array[0]))
@@ -213,6 +214,8 @@ int main(int argc, const char * argv[]) {
     // start scan...
     drv->startScan(0,1);
 
+    auto *filterInterp = new FilterInterp();
+
     // fetech result and print it out...
     while (1) {
         rplidar_response_measurement_node_t nodes[8192];
@@ -234,73 +237,26 @@ int main(int argc, const char * argv[]) {
                 tx1val = 90 - atan2(1, tx1val*0.50952544949f)*180/M_PI;
             }
 
-            double leftAngle = std::fmin(tx0val, tx1val);
-            double rightAngle = std::fmax(tx0val, tx1val);
+            std::vector<double> angles;
+
+//            double leftAngle = std::fmin(tx0val, tx1val);
+//            double rightAngle = std::fmax(tx0val, tx1val);
+
+            angles.push_back(tx0val);
+            angles.push_back(tx1val);
+
+            std::vector<Polar2D*> rawPoints;
 
             drv->ascendScanData(nodes, count);
             for (int pos = 0; pos < (int)count ; ++pos) {
                 float theta = (nodes[pos].angle_q6_checkbit >> RPLIDAR_RESP_MEASUREMENT_ANGLE_SHIFT)/64.0f - 270.0f;
                 float distance = nodes[pos].distance_q2 / 4.0f / 1000.0f;
-                if (theta > -30.0f && theta < 30.0f && distance > 0.0f) {
-                    printf("%s theta: %03.2f Dist: %08.2f Q: %d ",
-                           (nodes[pos].sync_quality & RPLIDAR_RESP_MEASUREMENT_SYNCBIT) ? "S " : "  ",
-                           theta,
-                           distance,
-                           nodes[pos].sync_quality >> RPLIDAR_RESP_MEASUREMENT_QUALITY_SHIFT);
-                    for (int i = 0; i < (distance)*30.0f; ++i) {
-                        printf("-");
-                    }
-                    if (fabs(theta+2.5f-leftAngle) < 1.0f) {
-                        distanceB = distance;
-                        thetaB = theta;
-                        printf("|");
-                    }
-                    if (fabs(theta-0.0f-rightAngle) < 1.0f) {
-                        distanceA = distance;
-                        thetaA = theta;
-                        printf("+");
-                    }
-                    printf("\n");
-                }
+                float thetaRadians = theta/180*M_PI;
+
+                rawPoints.push_back(new Polar2D{thetaRadians, distance});
             }
+            filterInterp->processWithOffsets(rawPoints, angles);
 
-            if (distanceA && distanceB && tx0val < 99 && tx1val < 99 ) {
-                Point2D pointA = polarToCartesian(Polar2D{M_PI/180*thetaA, distanceA});
-                Point2D pointB = polarToCartesian(Polar2D{M_PI/180*thetaB, distanceB});
-
-                printf("lidar right point: (%08.2f, %08.2f)\n", pointA.x, pointA.y);
-                printf("lidar left point: (%08.2f, %08.2f)\n", pointB.x, pointB.y);
-
-                double slope = (pointA.y - pointB.y) / (pointA.x - pointB.x);
-
-                // Calculate position of vision targets by projecting camera angles
-                double xLeft = -1*(slope*pointA.x + pointA.y)/(tan(M_PI/180*leftAngle)-slope);
-                double yLeft = xLeft*(tan(M_PI/180*leftAngle));
-
-                double xRight = -1*(slope*pointA.x + pointA.y)/(tan(M_PI/180*rightAngle)-slope);
-                double yRight = xLeft*(tan(M_PI/180*rightAngle));
-
-                printf("vision right point: (%08.2f, %08.2f)\n", xRight, yRight);
-                printf("vision left point: (%08.2f, %08.2f)\n", xLeft, yLeft);
-
-                // Midpoint of vision targets is the center of the target
-                double x = (xLeft+xRight)/2;
-                double y = (yLeft+yRight)/2;
-
-                // Calculate offset for robot relative to vision target
-                double angle = atan(-1/slope);
-                double off = -0.5;
-                double x_off = x+off*cos(angle)+0.1461;
-                double y_off = y+off*sin(angle);
-
-                printf("Pose of vision target: (%08.3f, %08.3f)\n", x, y);
-                printf("Target pose with offset: (%08.3f, %08.3f)\n", x_off, y_off);
-                printf("Slope: %08.3f\n", angle);
-
-                goal_x.SetDouble(x_off);
-                goal_y.SetDouble(y_off);
-                goal_theta.SetDouble(angle);
-            }
         }
 
         if (ctrl_c_pressed){ 
